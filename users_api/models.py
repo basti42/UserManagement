@@ -14,12 +14,14 @@ class User(db.Model):
     __tablename__ = "users"
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    username = db.Column(db.String(255), unique=False, nullable=False)
     email = db.Column(db.String(255), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
     registered_on = db.Column(db.DateTime, nullable=False)
     is_admin = db.Column(db.Boolean, nullable=False, default=False)
 
-    def __init__(self, email, password, admin=False):
+    def __init__(self, username: str, email: str, password: str, admin: bool = False):
+        self.username = username
         self.email = email
         self.password = generate_password_hash(
             password=password,
@@ -28,20 +30,23 @@ class User(db.Model):
         self.registered_on = datetime.datetime.now()
         self.is_admin = admin
 
-    def compare_password(self, _pw):
+    def compare_password(self, _pw) -> bool:
         return check_password_hash(
             pwhash=self.password,
             password=_pw
         )
 
-    def encode_auth_token(self, user_id):
+    def encode_auth_token(self, user_id) -> str:
         """
         Generates the Auth Token
         :return: string
         """
         try:
             payload = {
-                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=10.0),
+                # exp = expiration time
+                # iat = issued at
+                # sub = subject (whom the token refers to)
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(days=BaseConfig.JWT_EXPIRATION_DURATION),
                 'iat': datetime.datetime.utcnow(),
                 'sub': user_id
             }
@@ -64,7 +69,7 @@ class User(db.Model):
             payload = jwt.decode(auth_token, BaseConfig.SECRET_KEY, algorithms=['HS256'])
             is_blacklisted_token = BlacklistToken.check_blacklist(auth_token)
             if is_blacklisted_token:
-                return 'Token blacklisted. Please log in again.'
+                return 'Token blacklisted. Please log in again.', None
             else:
                 return payload['sub'], payload["exp"]
         except jwt.ExpiredSignatureError:

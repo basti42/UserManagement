@@ -11,3 +11,5 @@ class BaseConfig(object):
     SALT_LENGTH = os.getenv("SALT_LENGTH", 16)
     SQLALCHEMY_TRACK_MODIFICATIONS = os.getenv("SQLALCHEMY_TRACK_MODIFICATIONS", False)
     SQLALCHEMY_DATABASE_URI = os.getenv("SQLALCHEMY_DATABASE_URI", database_schema + database_name)
+
+    JWT_EXPIRATION_DURATION = os.getenv("JWT_EXPIRATION_DURATION", 10.0)

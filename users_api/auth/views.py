@@ -31,6 +31,7 @@ class RegisterAPI(MethodView):
         if not user:
             try:
                 user = User(
+                    username=post_data.get('username'),
                     email=post_data.get('email'),
                     password=post_data.get('password')
                 )
@@ -139,6 +140,7 @@ class UserAPI(MethodView):
                 response_object = {
                     "status": "success",
                     "data": {
+                        "username": user.username,
                         "email": user.email,
                         "registered_on": user.registered_on,
                         "token_exp_date": datetime.datetime.utcfromtimestamp(expiration_date).strftime('%Y-%m-%d %H:%M:%S')
